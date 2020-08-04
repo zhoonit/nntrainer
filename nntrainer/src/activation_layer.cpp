@@ -16,6 +16,7 @@
 #include <fstream>
 #include <iostream>
 #include <layer.h>
+#include <lazy_tensor.h>
 #include <nntrainer_error.h>
 #include <nntrainer_log.h>
 #include <optimizer.h>
@@ -51,16 +52,19 @@ int ActivationLayer::initialize(bool last) {
   return ML_ERROR_NONE;
 }
 
-sharedTensor ActivationLayer::forwarding(sharedTensor in) {
-  input = *in;
+sharedConstTensor ActivationLayer::forwarding(sharedConstTensor in) {
+  input = in->clone();
   hidden = _act_fn(input);
 
-  return MAKE_SHARED_TENSOR(hidden);
+  Tensor ret;
+  ret.copy(hidden);
+
+  return MAKE_SHARED_TENSOR(std::move(ret));
 }
 
-sharedTensor ActivationLayer::backwarding(sharedTensor derivative,
-                                          int iteration) {
-  Tensor deriv = *derivative;
+sharedConstTensor ActivationLayer::backwarding(sharedConstTensor derivative,
+                                               int iteration) {
+  Tensor deriv = derivative->clone();
   Tensor ret;
   if (activation_type == ActiType::ACT_SOFTMAX)
     ret = _act_prime_fn(hidden, deriv);

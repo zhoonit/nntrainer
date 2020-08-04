@@ -81,18 +81,18 @@ void FullyConnectedLayer::setProperty(const PropertyType type,
   }
 }
 
-sharedTensor FullyConnectedLayer::forwarding(sharedTensor in) {
+sharedConstTensor FullyConnectedLayer::forwarding(sharedConstTensor in) {
   Tensor &weight = paramsAt(static_cast<int>(FCParams::weight)).weight;
   Tensor &bias = paramsAt(static_cast<int>(FCParams::bias)).weight;
 
-  input = *in;
+  input = in->clone();
   hidden = input.chain().dot(weight).add_i(bias).run();
 
   if (weight_decay.type == WeightDecayType::l2norm) {
     loss = weight_decay.lambda * 0.5f * (weight.l2norm());
   }
 
-  return MAKE_SHARED_TENSOR(hidden);
+  return MAKE_SHARED_TENSOR(hidden.clone());
 }
 
 void FullyConnectedLayer::read(std::ifstream &file) {
@@ -121,8 +121,8 @@ void FullyConnectedLayer::copy(std::shared_ptr<Layer> l) {
   this->loss = from->loss;
 }
 
-sharedTensor FullyConnectedLayer::backwarding(sharedTensor derivative,
-                                              int iteration) {
+sharedConstTensor FullyConnectedLayer::backwarding(sharedConstTensor derivative,
+                                                   int iteration) {
   unsigned int weight_idx = static_cast<int>(FCParams::weight);
   unsigned int bias_idx = static_cast<int>(FCParams::bias);
   Tensor &weight = paramsAt(weight_idx).weight;

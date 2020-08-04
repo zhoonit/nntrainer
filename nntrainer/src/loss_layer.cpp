@@ -45,9 +45,10 @@ int LossLayer::initialize(bool last) {
   return status;
 }
 
-sharedTensor LossLayer::forwarding(sharedTensor in, sharedTensor label) {
-  input = *in;
-  Tensor y2 = *label;
+sharedConstTensor LossLayer::forwarding(sharedConstTensor in,
+                                        sharedConstTensor label) {
+  input = in->clone();
+  Tensor y2 = label->clone();
   Tensor y = input;
   Tensor l;
 
@@ -112,9 +113,10 @@ void LossLayer::copy(std::shared_ptr<Layer> l) {
   this->loss = from->loss;
 }
 
-sharedTensor LossLayer::backwarding(sharedTensor derivative, int iteration) {
+sharedConstTensor LossLayer::backwarding(sharedConstTensor derivative,
+                                         int iteration) {
   Tensor ret_derivative;
-  Tensor y2 = *derivative;
+  Tensor y2 = derivative->clone();
   Tensor y = input;
 
   switch (cost) {
@@ -151,7 +153,7 @@ int LossLayer::setCost(CostType c) {
   return status;
 }
 
-sharedTensor LossLayer::forwarding(sharedTensor in) {
+sharedConstTensor LossLayer::forwarding(sharedConstTensor in) {
   throw std::runtime_error("Not supported.");
 }
 

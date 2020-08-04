@@ -77,7 +77,7 @@ void BatchNormalizationLayer::setProperty(const PropertyType type,
   }
 }
 
-sharedTensor BatchNormalizationLayer::forwarding(sharedTensor in) {
+sharedConstTensor BatchNormalizationLayer::forwarding(sharedConstTensor in) {
   Tensor &mu = paramsAt(static_cast<int>(BNParams::mu)).weight;
   Tensor &var = paramsAt(static_cast<int>(BNParams::var)).weight;
   Tensor &gamma = paramsAt(static_cast<int>(BNParams::gamma)).weight;
@@ -85,7 +85,7 @@ sharedTensor BatchNormalizationLayer::forwarding(sharedTensor in) {
 
   if (trainable) {
     Tensor deviation;
-    input = *in;
+    input = in->clone();
 
     ///< current mu */
     Tensor cmu;
@@ -119,15 +119,16 @@ sharedTensor BatchNormalizationLayer::forwarding(sharedTensor in) {
   return MAKE_SHARED_TENSOR(hidden);
 }
 
-sharedTensor BatchNormalizationLayer::backwarding(sharedTensor derivative,
-                                                  int iteration) {
+sharedConstTensor
+BatchNormalizationLayer::backwarding(sharedConstTensor derivative,
+                                     int iteration) {
   Tensor &gamma = paramsAt(static_cast<int>(BNParams::gamma)).weight;
   Tensor &dbeta = paramsAt(static_cast<int>(BNParams::beta)).grad;
   Tensor &dgamma = paramsAt(static_cast<int>(BNParams::beta)).grad;
   Tensor dx_normalized;
 
   Tensor dx;
-  Tensor deriv = *derivative;
+  Tensor deriv = derivative->clone();
 
   int batch = deriv.batch();
 
