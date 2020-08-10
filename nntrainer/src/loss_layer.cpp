@@ -47,17 +47,17 @@ int LossLayer::initialize(bool last) {
 
 sharedConstTensor LossLayer::forwarding(sharedConstTensor in,
                                         sharedConstTensor label) {
-  input = in->clone();
-  Tensor y2 = label->clone();
+  input = *in;
+  Tensor y2 = *label;
   Tensor y = input;
   Tensor l;
 
   switch (cost) {
   case COST_MSE: {
     // y2 <- y2 - y;
-    y2.subtract_i(y);
+    Tensor residual = y2.subtract(y);
 
-    l = y2.chain().multiply_i(y2).average().run();
+    l = residual.chain().multiply_i(residual).average().run();
   } break;
   case COST_ENTROPY_SIGMOID: {
     // @todo: change this to apply_i
@@ -116,7 +116,7 @@ void LossLayer::copy(std::shared_ptr<Layer> l) {
 sharedConstTensor LossLayer::backwarding(sharedConstTensor derivative,
                                          int iteration) {
   Tensor ret_derivative;
-  Tensor y2 = derivative->clone();
+  Tensor y2 = *derivative;
   Tensor y = input;
 
   switch (cost) {

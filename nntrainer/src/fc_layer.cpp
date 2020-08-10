@@ -85,14 +85,14 @@ sharedConstTensor FullyConnectedLayer::forwarding(sharedConstTensor in) {
   Tensor &weight = paramsAt(static_cast<int>(FCParams::weight)).weight;
   Tensor &bias = paramsAt(static_cast<int>(FCParams::bias)).weight;
 
-  input = in->clone();
+  input = *in;
   hidden = input.chain().dot(weight).add_i(bias).run();
 
   if (weight_decay.type == WeightDecayType::l2norm) {
     loss = weight_decay.lambda * 0.5f * (weight.l2norm());
   }
 
-  return MAKE_SHARED_TENSOR(hidden.clone());
+  return MAKE_SHARED_TENSOR(hidden);
 }
 
 void FullyConnectedLayer::read(std::ifstream &file) {

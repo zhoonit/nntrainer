@@ -49,7 +49,7 @@ sharedConstTensor FlattenLayer::forwarding(sharedConstTensor in) {
 
 sharedConstTensor FlattenLayer::backwarding(sharedConstTensor in,
                                             int iteration) {
-  Tensor temp = in->clone();
+  Tensor temp = *in;
   temp.setDim(input_dim);
 
   return MAKE_SHARED_TENSOR(std::move(temp));

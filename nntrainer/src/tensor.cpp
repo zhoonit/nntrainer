@@ -184,9 +184,7 @@ int Tensor::multiply_i(float const &value) {
 }
 
 Tensor Tensor::multiply(float const &value) {
-  Tensor result;
-
-  result.copy(*this);
+  Tensor result = this->clone();
   result.multiply_i(value);
 
   return result;
@@ -228,8 +226,7 @@ int Tensor::add_i(float const &value) {
 }
 
 Tensor Tensor::add(float const &value) {
-  Tensor result;
-  result.copy(*this);
+  Tensor result = this->clone();
   result.add_i(value);
 
   return result;
@@ -347,8 +344,7 @@ Tensor Tensor::subtract(Tensor const &m) const {
     throw std::runtime_error("Error: Dimension must be equal each other");
   }
 
-  Tensor result;
-  result.copy(*this);
+  Tensor result = this->clone();
   result.subtract_i(m);
 
   return result;
@@ -357,8 +353,7 @@ Tensor Tensor::subtract(Tensor const &m) const {
 int Tensor::subtract_i(float const &value) { return this->add_i(-value); }
 
 Tensor Tensor::subtract(float const &value) {
-  Tensor result;
-  result.copy(*this);
+  Tensor result = this->clone();
 
   if (result.subtract_i(value) != ML_ERROR_NONE) {
     throw std::runtime_error("Error: there was an error on subtraction");
@@ -466,8 +461,7 @@ Tensor Tensor::divide(Tensor const &m) const {
     throw std::runtime_error("Error: Dimension must be equal each other");
   }
 
-  Tensor result;
-  result.copy(*this);
+  Tensor result = this->clone();
   result.divide_i(m);
 
   return result;

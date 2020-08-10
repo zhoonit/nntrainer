@@ -53,18 +53,15 @@ int ActivationLayer::initialize(bool last) {
 }
 
 sharedConstTensor ActivationLayer::forwarding(sharedConstTensor in) {
-  input = in->clone();
+  input = *in;
   hidden = _act_fn(input);
 
-  Tensor ret;
-  ret.copy(hidden);
-
-  return MAKE_SHARED_TENSOR(std::move(ret));
+  return MAKE_SHARED_TENSOR(hidden);
 }
 
 sharedConstTensor ActivationLayer::backwarding(sharedConstTensor derivative,
                                                int iteration) {
-  Tensor deriv = derivative->clone();
+  Tensor deriv = *derivative;
   Tensor ret;
   if (activation_type == ActiType::ACT_SOFTMAX)
     ret = _act_prime_fn(hidden, deriv);

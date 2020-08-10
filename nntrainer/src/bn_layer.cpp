@@ -85,7 +85,7 @@ sharedConstTensor BatchNormalizationLayer::forwarding(sharedConstTensor in) {
 
   if (trainable) {
     Tensor deviation;
-    input = in->clone();
+    input = *in;
 
     ///< current mu */
     Tensor cmu;
@@ -128,7 +128,7 @@ BatchNormalizationLayer::backwarding(sharedConstTensor derivative,
   Tensor dx_normalized;
 
   Tensor dx;
-  Tensor deriv = derivative->clone();
+  Tensor deriv = *derivative;
 
   int batch = deriv.batch();
 

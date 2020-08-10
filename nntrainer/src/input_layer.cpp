@@ -63,7 +63,7 @@ void InputLayer::copy(std::shared_ptr<Layer> l) {
 }
 
 sharedConstTensor InputLayer::forwarding(sharedConstTensor in) {
-  input = in->clone();
+  input = *in;
   if (normalization)
     input = input.normalization();
   if (standardization)
