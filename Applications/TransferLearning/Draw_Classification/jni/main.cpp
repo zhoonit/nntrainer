@@ -162,6 +162,9 @@ int getBatch_train(float **input, float **label, bool *last, void *user_data) {
   return ML_ERROR_NONE;
 }
 
+// moved handle to the global variable for brevity
+ml_train_model_h handle = NULL;
+
 /**
  * @brief Train the model with the given config file path
  * @param[in] config Model config file path
@@ -170,7 +173,6 @@ int trainModel(const char *config) {
   int status = ML_ERROR_NONE;
 
   /** Neural Network Create & Initialization */
-  ml_train_model_h handle = NULL;
   ml_train_dataset_h dataset = NULL;
 
   status = ml_train_model_construct_with_conf(config, &handle);
@@ -214,7 +216,7 @@ int trainModel(const char *config) {
   }
 
   /** destroy the model */
-  status = ml_train_model_destroy(handle);
+  // status = ml_train_model_destroy(handle);
   return status;
 }
 
@@ -257,6 +259,7 @@ void sink_cb(const ml_tensors_data_h data, const ml_tensors_info_h info,
 
   test_file_idx += 1;
 }
+#endif
 
 int getInputFeature_c(const std::string filename, float *feature_input) {
   try {
@@ -267,120 +270,48 @@ int getInputFeature_c(const std::string filename, float *feature_input) {
 
   return ML_ERROR_NONE;
 }
-#endif
 
 /**
  * @brief Test the model with the given config file path
  * @param[in] data_path Path of the test data
  * @param[in] config Model config file path
  */
-int testModel(const char *data_path, const char *model) {
-#if defined(NNSTREAMER_AVAILABLE)
+int testModel(const char *data_path, const char *not_used) {
+  ml_train_model *model = static_cast<ml_train_model *>(handle);
   int status = ML_ERROR_NONE;
-  ml_pipeline_h pipe;
-  ml_pipeline_src_h src;
-  ml_pipeline_sink_h sink;
-  ml_tensors_info_h in_info;
-  ml_tensors_data_h in_data;
-  void *raw_data;
-  size_t data_size;
-  ml_tensor_dimension in_dim = {1, IMAGE_SIDE, IMAGE_SIDE, IMAGE_CHANNELS};
 
-  char pipeline[2048];
-  snprintf(
-    pipeline, sizeof(pipeline),
-    "appsrc name=srcx ! "
-    "other/"
-    "tensor,dimension=(string)%d:%d:%d:1,type=(string)float32,framerate=("
-    "fraction)0/1 ! "
-    "tensor_filter framework=nntrainer model=\"%s\" input=%d:%d:%d:1 "
-    "inputtype=float32 output=%d outputtype=float32 ! tensor_sink "
-    "name=sinkx",
-    IMAGE_CHANNELS, IMAGE_SIDE, IMAGE_SIDE, model, IMAGE_CHANNELS, IMAGE_SIDE,
-    IMAGE_SIDE, LABEL_SIZE);
-
-  status = ml_pipeline_construct(pipeline, NULL, NULL, &pipe);
-  if (status != ML_ERROR_NONE)
-    goto fail_exit;
-
-  status = ml_pipeline_src_get_handle(pipe, "srcx", &src);
-  if (status != ML_ERROR_NONE)
-    goto fail_pipe_destroy;
-
-  status = ml_pipeline_sink_register(pipe, "sinkx", sink_cb, NULL, &sink);
-  if (status != ML_ERROR_NONE)
-    goto fail_src_release;
-
-  status = ml_pipeline_start(pipe);
-  if (status != ML_ERROR_NONE)
-    goto fail_sink_release;
-
-  ml_tensors_info_create(&in_info);
-  ml_tensors_info_set_count(in_info, 1);
-  ml_tensors_info_set_tensor_type(in_info, 0, ML_TENSOR_TYPE_FLOAT32);
-  ml_tensors_info_set_tensor_dimension(in_info, 0, in_dim);
-
+  std::shared_ptr<nntrainer::NeuralNetwork> network = model->network;
   for (int i = 0; i < TOTAL_TEST_SIZE; i++) {
     char *test_file_path;
     status =
       asprintf(&test_file_path, "%s/testset/test%d.bmp", data_path, i + 1);
     if (status < 0) {
       status = -errno;
-      goto fail_info_release;
+      break;
     }
 
     float featureVector[INPUT_SIZE];
     status = getInputFeature_c(test_file_path, featureVector);
+    std::cout << "inference output of " << test_file_path << '\n';
     free(test_file_path);
+
     if (status != ML_ERROR_NONE)
-      goto fail_info_release;
+      break;
 
-    status = ml_tensors_data_create(in_info, &in_data);
-    if (status != ML_ERROR_NONE)
-      goto fail_info_release;
+    std::shared_ptr<const nntrainer::Tensor> input =
+      MAKE_SHARED_TENSOR(network->getInputDimension()[0], featureVector);
+    std::vector<std::shared_ptr<const nntrainer::Tensor>> output =
+      network->inference({input}, false);
 
-    status = ml_tensors_data_get_tensor_data(in_data, 0, &raw_data, &data_size);
-    if (status != ML_ERROR_NONE) {
-      ml_tensors_data_destroy(&in_data);
-      goto fail_info_release;
-    }
+    std::cout << *output[0]; // this is result outcome of softmax, argmax is the
+                             // label predicted.
 
-    for (size_t ds = 0; ds < data_size / sizeof(float); ds++)
-      ((float *)raw_data)[ds] = featureVector[ds];
-
-    status = ml_pipeline_src_input_data(src, in_data,
-                                        ML_PIPELINE_BUF_POLICY_AUTO_FREE);
-    if (status != ML_ERROR_NONE) {
-      ml_tensors_data_destroy(&in_data);
-      goto fail_info_release;
-    }
-
-    /** No need to destroy data here, pipeline freed buffer automatically */
+    const float *data =
+      output[0]->getData(); // to get the raw float * of the result,
+    std::cout << "data address: " << data << '\n';
   }
-
-  /** Sleep for 1 second for all the data to be received by sink callback */
-  sleep(1);
-
-fail_info_release:
-  ml_tensors_info_destroy(in_info);
-
-  status = ml_pipeline_stop(pipe);
-
-fail_sink_release:
-  status = ml_pipeline_sink_unregister(sink);
-
-fail_src_release:
-  status = ml_pipeline_src_release_handle(src);
-
-fail_pipe_destroy:
-  status = ml_pipeline_destroy(pipe);
-
-fail_exit:
+  status = ml_train_model_destroy(handle);
   return status;
-#else
-  std::cout << "Testing of model is supported without NNStreamer." << std::endl;
-  return ML_ERROR_NONE;
-#endif
 }
 
 #if defined(APP_VALIDATE)
