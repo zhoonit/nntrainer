@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 compiler_sources = []
+=======
+compiler_sources = [
+  'ini_interpreter.cpp'
+]
+>>>>>>> [IniInterpreter] Add test setup
 
 compiler_headers = []
 
