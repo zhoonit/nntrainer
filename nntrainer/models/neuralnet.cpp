@@ -636,7 +636,7 @@ int NeuralNetwork::train_run() {
     }
 
     /// @todo make this working, test buffer is running but doing nothing
-    if (test_buffer != nullptr && test_buffer->getValidation()[0]) {
+    if (test_buffer != nullptr && test_buffer->isValid()) {
       status = test_buffer->run();
       if (status != ML_ERROR_NONE) {
         test_buffer->clear();
@@ -676,7 +676,7 @@ int NeuralNetwork::train_run() {
     std::cout << "#" << epoch_idx << "/" << epochs
               << " - Training Loss: " << training.loss;
 
-    if (valid_buffer != nullptr && valid_buffer->getValidation()[0]) {
+    if (valid_buffer != nullptr && valid_buffer->isValid()) {
       int right = 0;
       validation.loss = 0.0f;
       unsigned int tcases = 0;
