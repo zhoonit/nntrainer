@@ -32,7 +32,7 @@ void FuncDataProducer::setProperty(const std::vector<std::string> &properties) {
     << "properties is not empty, size: " << properties.size();
 }
 
-DataProducer::Gernerator
+DataProducer::Generator
 FuncDataProducer::finalize(const std::vector<TensorDim> &input_dims,
                            const std::vector<TensorDim> &label_dims) {
   return [cb = this->cb, ud = this->user_data, input_dims,
@@ -48,7 +48,7 @@ FuncDataProducer::finalize(const std::vector<TensorDim> &input_dims,
 
     std::vector<Tensor> labels;
     labels.reserve(label_dims.size());
-    float **label_data = new float *[labels.size()];
+    float **label_data = new float *[label_dims.size()];
 
     for (unsigned int i = 0; i < label_dims.size(); ++i) {
       labels.emplace_back(label_dims[i]);
