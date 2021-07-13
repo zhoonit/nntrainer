@@ -54,17 +54,17 @@ public:
  * @brief Props containing max value
  *
  */
-class PropsDataSize : public Property<unsigned int> {
+class PropsNumSamples : public Property<unsigned int> {
 public:
   /**
    * @brief Construct a new props data size object with a default value
    *
    * @param value default value
    */
-  PropsDataSize(unsigned int value = 512) :
+  PropsNumSamples(unsigned int value = 512) :
     nntrainer::Property<unsigned int>(value) {}
-  static constexpr const char *key = "size"; /**< unique key to access */
-  using prop_tag = uint_prop_tag;            /**< property type */
+  static constexpr const char *key = "num_samples"; /**< unique key to access */
+  using prop_tag = uint_prop_tag;                   /**< property type */
 };
 
 RandomDataOneHotProducer::RandomDataOneHotProducer() :
@@ -79,7 +79,7 @@ const std::string RandomDataOneHotProducer::getType() const {
 unsigned long long
 RandomDataOneHotProducer::size(const std::vector<TensorDim> &input,
                                const std::vector<TensorDim> &output) const {
-  return std::get<PropsDataSize>(*rd_one_hot_props).get();
+  return std::get<PropsNumSamples>(*rd_one_hot_props).get();
 }
 
 void RandomDataOneHotProducer::setProperty(
