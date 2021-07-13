@@ -60,7 +60,11 @@ public:
    *
    * @param properties properties to set
    */
-  virtual void setProperty(const std::vector<std::string> &properties) {}
+  virtual void setProperty(const std::vector<std::string> &properties) {
+    if (!properties.empty()) {
+      throw std::invalid_argument("failed to set property");
+    }
+  }
 
   /**
    * @brief finalize the class with given properties
