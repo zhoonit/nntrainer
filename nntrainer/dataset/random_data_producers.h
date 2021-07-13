@@ -24,7 +24,7 @@ namespace nntrainer {
 
 class PropsMin;
 class PropsMax;
-class PropsDataSize;
+class PropsNumSamples;
 
 /**
  * @brief RandomDataProducer which generates a onehot vector as a label
@@ -73,7 +73,7 @@ public:
            const std::vector<TensorDim> &label_dims) override;
 
 private:
-  using Props = std::tuple<PropsMin, PropsMax, PropsDataSize>;
+  using Props = std::tuple<PropsMin, PropsMax, PropsNumSamples>;
   std::unique_ptr<Props> rd_one_hot_props;
 };
 
