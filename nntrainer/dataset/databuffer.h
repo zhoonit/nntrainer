@@ -45,6 +45,8 @@ namespace nntrainer {
 using DatasetType = ml::train::DatasetType;
 using datagen_cb = ml::train::datagen_cb;
 
+class PropsBufferSize;
+
 /**
  * @class   DataBuffer Data Buffers
  * @brief   Data Buffer for read and manage data
@@ -56,6 +58,18 @@ public:
    * @retval    DataBuffer
    */
   DataBuffer(DatasetType type);
+
+  /**
+   * @brief   Create DataBuffer with a producer
+   *
+   */
+  DataBuffer(std::unique_ptr<DataProducer> &&producer_);
+
+  /**
+   * @brief Destroy the Data Buffer object
+   *
+   */
+  virtual ~DataBuffer();
 
   /**
    * @brief     Initialize Buffer with data buffer private variables
@@ -146,7 +160,7 @@ public:
    * @retval #ML_ERROR_NONE Successful.
    * @retval #ML_ERROR_INVALID_PARAMETER invalid parameter.
    */
-  int setProperty(std::vector<std::string> values);
+  void setProperty(const std::vector<std::string> &values) override;
 
   /**
    * @brief     set property to allow setting user_data for cb
@@ -242,18 +256,10 @@ protected:
   std::exception_ptr consumer_exception_ptr; /**< exception ptr for consumer to
                                                 catch when producer is dead */
 
+  using Props = std::tuple<PropsBufferSize>;
+  std::unique_ptr<Props> db_props;
   /** The user_data to be used for the data generator callback */
   void *user_data;
-
-  /**
-   * @brief     set property
-   * @param[in] type type of property
-   * @param[in] value string value of property
-   * @retval #ML_ERROR_NONE Successful.
-   * @retval #ML_ERROR_INVALID_PARAMETER invalid parameter.
-   */
-  virtual int setProperty(const DataBuffer::PropertyType type,
-                          std::string &value);
 };
 
 } // namespace nntrainer
