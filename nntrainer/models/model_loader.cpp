@@ -15,8 +15,6 @@
 
 #include <adam.h>
 #include <databuffer_factory.h>
-#include <databuffer_file.h>
-#include <databuffer_func.h>
 #include <ini_interpreter.h>
 #include <layer_factory.h>
 #include <model_loader.h>

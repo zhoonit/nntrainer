@@ -24,8 +24,6 @@
 
 #include <fstream>
 
-#include <databuffer_file.h>
-#include <databuffer_func.h>
 #include <neuralnet.h>
 #include <nntrainer_error.h>
 #include <optimizer_factory.h>
