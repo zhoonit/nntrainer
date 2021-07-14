@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: Apache-2.0
 /**
  * Copyright (C) 2020 Parichay Kapoor <pk.kapoor@samsung.com>
@@ -87,23 +86,28 @@ public:
 };
 
 /**
- * @brief Factory creator with constructor for dataset
+ * @copydoc std::unique_ptr<Dataset>createDataset(DatasetType, const
+ * std::vector<std::string> &, Args &&...)
  */
 std::unique_ptr<Dataset>
 createDataset(DatasetType type,
               const std::vector<std::string> &properties = {});
 
 /**
- * @brief Factory creator with constructor for dataset
+ * @copydoc std::unique_ptr<Dataset>createDataset(DatasetType, const
+ * std::vector<std::string> &, Args &&...)
  */
-std::unique_ptr<Dataset> createDataset(DatasetType type, const char *file);
+std::unique_ptr<Dataset>
+createDataset(DatasetType type, const char *file,
+              const std::vector<std::string> &properties = {});
 
 /**
- * @brief Factory creator with constructor for dataset
+ * @copydoc std::unique_ptr<Dataset>createDataset(DatasetType, const
+ * std::vector<std::string> &, Args &&...)
  */
-std::unique_ptr<Dataset> createDataset(DatasetType type, datagen_cb cb,
-                                       void *user_data = nullptr);
-
+std::unique_ptr<Dataset>
+createDataset(DatasetType type, datagen_cb cb, void *user_data = nullptr,
+              const std::vector<std::string> &properties = {});
 } // namespace train
 } // namespace ml
 
