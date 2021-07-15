@@ -882,7 +882,41 @@ ml_train_dataset_set_property_for_mode_(ml_train_dataset_h dataset,
         return status_;
       }
 
-      status_ = db->setProperty(args);
+      std::vector<std::string> properties;
+      for (unsigned int i = 0; i < args.size(); ++i) {
+        char *key_ptr = (char *)args[i];
+        std::string key = key_ptr;
+        std::string value;
+
+        /** Handle the user_data as a special case, serialize the address and
+         * pass it to the databuffer */
+        if (key == "user_data") {
+          /** This ensures that a valid user_data element is passed by the user
+           */
+          if (i + 1 >= args.size()) {
+            ml_loge("key user_data expects, next value to be a pointer");
+            status_ = ML_ERROR_INVALID_PARAMETER;
+            return status_;
+          }
+          std::ostringstream ss;
+          ss << key << '=' << args[i + 1];
+          properties.push_back(ss.str());
+
+          /** As values of i+1 is consumed, increase i by 1 */
+          i++;
+
+        } else if (key.find("user_data") == 0) {
+          /** case that user tries to pass something like user_data=5, this is
+           * not allowed */
+          status_ = ML_ERROR_INVALID_PARAMETER;
+          return status_;
+        } else {
+          properties.push_back(key);
+          continue;
+        }
+      }
+
+      db->setProperty(properties);
       return status_;
     };
 
